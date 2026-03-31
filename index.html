@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>贷款计算器</title>
+ <style>
+ * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Microsoft YaHei', sans-serif; }
+ body { background: #f5f5f5; padding: 20px; }
+ .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+ h1 { text-align: center; color: #333; margin-bottom: 20px; font-size: 18px; font-weight: 600; }
+ 
+ .input-group { margin-bottom: 15px; }
+ .input-row { display: flex; gap: 10px; }
+ .input-item { flex: 1; }
+ label { display: block; margin-bottom: 6px; color: #666; font-size: 14px; }
+ input { 
+ width: 100%; 
+ padding: 12px; 
+ border: 1px solid #ddd; 
+ border-radius: 6px; 
+ font-size: 16px; 
+ text-align: right;
+ }
+ input:focus { outline: none; border-color: #1677ff; }
+
+ .btn-group { display: flex; gap: 10px; margin: 15px 0; }
+ button { 
+ flex: 1; 
+ padding: 12px; 
+ border: none; 
+ border-radius: 6px; 
+ color: white; 
+ font-size: 16px; 
+ cursor: pointer;
+ }
+ .calc-btn { background: #1677ff; }
+ .reset-btn { background: #ff4d4f; }
+
+ .compare-section { margin-top: 25px; }
+ .compare-title { text-align: center; margin-bottom: 15px; }
+ .compare-title h3 { font-size: 16px; color: #333; }
+
+ table { 
+ width: 100%; 
+ border-collapse: collapse; 
+ text-align: center;
+ font-size: 14px;
+ }
+ th, td { 
+ padding: 12px 8px; 
+ border: 1px solid #eee;
+ }
+ th { background: #fafafa; font-weight: 500; }
+ .col-name { text-align: left; padding-left: 15px; }
+ .row-equal { color: #1677ff; font-weight: 500; }
+ .row-principal { color: #722ed1; font-weight: 500; }
+ .row-flat { color: #36cbcb; font-weight: 500; }
+ </style>
+</head>
+<body>
+<div class="container">
+ <h1>贷款计算器</h1>
+
+ <div class="input-group">
+ <div class="input-row">
+ <div class="input-item">
+ <label>贷款金额（元）</label>
+ <input type="text" id="loanAmount" placeholder="输入金额" onblur="formatInput(this)">
+ </div>
+ <div class="input-item">
+ <label>贷款期数（月）</label>
+ <input type="number" id="loanTerm" placeholder="期数" min="1">
+ </div>
+ <div class="input-item">
+ <label>年利率（%）</label>
+ <input type="number" id="annualRate" placeholder="年利率" step="0.0001">
+ </div>
+ </div>
+ </div>
+
+ <div class="btn-group">
+ <button class="calc-btn" onclick="calculateAll()">计算</button>
+ <button class="reset-btn" onclick="resetAll()">重置</button>
+ </div>
+
+ <div class="compare-section">
+ <div class="compare-title">
+ <h3>三种还款方式对比</h3>
+ </div>
+ <table id="resultTable">
+ <thead>
+ <tr>
+ <th class="col-name">还款方式</th>
+ <th>月供金额</th>
+ <th>总还款额</th>
+ <th>总利息</th>
+ <th>利息占比</th>
+ </tr>
+ </thead>
+ <tbody></tbody>
+ </table>
+ </div>
+</div>
+
+<script>
+// 金额格式化：整数元，无小数，带千分符
+function formatInput(input) {
+ let val = input.value.replace(/,/g, '');
+ if (val === '' || isNaN(val)) {
+ input.value = '';
+ return;
+ }
+ let num = Math.floor(parseFloat(val));
+ input.value = num.toLocaleString('zh-CN');
+}
+
+// 获取纯数字
+function getPureNumber(id) {
+ let val = document.getElementById(id).value.replace(/,/g, '').trim();
+ return val ? Math.floor(parseFloat(val)) : 0;
+}
+
+// 回车跳转 + 自动计算
+const amt = document.getElementById('loanAmount');
+const term = document.getElementById('loanTerm');
+const rate = document.getElementById('annualRate');
+
+amt.addEventListener('keydown', e => {
+ if (e.key === 'Enter') {
+ e.preventDefault();
+ formatInput(amt);
+ term.focus();
+ }
+});
+
+term.addEventListener('keydown', e => {
+ if (e.key === 'Enter') {
+ e.preventDefault();
+ rate.focus();
+ }
+});
+
+rate.addEventListener('keydown', e => {
+ if (e.key === 'Enter') {
+ e.preventDefault();
+ calculateAll();
+ }
+});
+
+// 重置功能
+function resetAll() {
+ document.getElementById("loanAmount").value = "";
+ document.getElementById("loanTerm").value = "";
+ document.getElementById("annualRate").value = "";
+ document.querySelector("#resultTable tbody").innerHTML = "";
+}
+
+// 数字显示格式化（整数元）
+function fmt(num) {
+ return Math.round(num).toLocaleString('zh-CN');
+}
+
+// 主计算
+function calculateAll() {
+ let amount = getPureNumber('loanAmount');
+ let term = parseInt(document.getElementById('loanTerm').value || 0);
+ let rateYear = parseFloat(document.getElementById('annualRate').value || 0);
+
+ if (amount <= 0) { alert('贷款金额输入有误，请查对！'); return; }
+ if (term <= 0) { alert('期数输入有误！'); return; }
+ if (rateYear <= 0) { alert('年利率输入有误！'); return; }
+
+ let monthRate = rateYear / 100 / 12;
+
+ // 等额本息
+ let payEqual = amount * monthRate * Math.pow(1 + monthRate, term) / (Math.pow(1 + monthRate, term) - 1);
+ let totalEqual = payEqual * term;
+ let interestEqual = totalEqual - amount;
+ let ratioEqual = ((interestEqual / totalEqual) * 100).toFixed(2);
+
+ // 等额本金
+ let monthBen = amount / term;
+ let interestBen = 0;
+ let rest = amount;
+ for (let i = 0; i < term; i++) {
+ interestBen += rest * monthRate;
+ rest -= monthBen;
+ }
+ let totalBen = amount + interestBen;
+ let firstBen = monthBen + amount * monthRate;
+ let ratioBen = ((interestBen / totalBen) * 100).toFixed(2);
+
+ // 信用平息
+ let interestFlat = amount * monthRate * term;
+ let totalFlat = amount + interestFlat;
+ let payFlat = totalFlat / term;
+ let ratioFlat = ((interestFlat / totalFlat) * 100).toFixed(2);
+
+ // 渲染表格
+ document.querySelector('#resultTable tbody').innerHTML = `
+ <tr class="row-equal">
+ <td class="col-name">等额本息</td>
+ <td>${fmt(payEqual)}</td>
+ <td>${fmt(totalEqual)}</td>
+ <td>${fmt(interestEqual)}</td>
+ <td>${ratioEqual}%</td>
+ </tr>
+ <tr class="row-principal">
+ <td class="col-name">等额本金</td>
+ <td>${fmt(firstBen)}</td>
+ <td>${fmt(totalBen)}</td>
+ <td>${fmt(interestBen)}</td>
+ <td>${ratioBen}%</td>
+ </tr>
+ <tr class="row-flat">
+ <td class="col-name">信用平息</td>
+ <td>${fmt(payFlat)}</td>
+ <td>${fmt(totalFlat)}</td>
+ <td>${fmt(interestFlat)}</td>
+ <td>${ratioFlat}%</td>
+ </tr>`;
+}
+</script>
+</body>
+</html>
