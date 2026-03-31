@@ -1,226 +1,477 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>贷款计算器</title>
- <style>
- * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Microsoft YaHei', sans-serif; }
- body { background: #f5f5f5; padding: 20px; }
- .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
- h1 { text-align: center; color: #333; margin-bottom: 20px; font-size: 18px; font-weight: 600; }
- 
- .input-group { margin-bottom: 15px; }
- .input-row { display: flex; gap: 10px; }
- .input-item { flex: 1; }
- label { display: block; margin-bottom: 6px; color: #666; font-size: 14px; }
- input { 
- width: 100%; 
- padding: 12px; 
- border: 1px solid #ddd; 
- border-radius: 6px; 
- font-size: 16px; 
- text-align: right;
- }
- input:focus { outline: none; border-color: #1677ff; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>期货计算器 · 杠杆小数一位</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
- .btn-group { display: flex; gap: 10px; margin: 15px 0; }
- button { 
- flex: 1; 
- padding: 12px; 
- border: none; 
- border-radius: 6px; 
- color: white; 
- font-size: 16px; 
- cursor: pointer;
- }
- .calc-btn { background: #1677ff; }
- .reset-btn { background: #ff4d4f; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
 
- .compare-section { margin-top: 25px; }
- .compare-title { text-align: center; margin-bottom: 15px; }
- .compare-title h3 { font-size: 16px; color: #333; }
+        .calculator {
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            padding: 24px 20px 28px;
+        }
 
- table { 
- width: 100%; 
- border-collapse: collapse; 
- text-align: center;
- font-size: 14px;
- }
- th, td { 
- padding: 12px 8px; 
- border: 1px solid #eee;
- }
- th { background: #fafafa; font-weight: 500; }
- .col-name { text-align: left; padding-left: 15px; }
- .row-equal { color: #1677ff; font-weight: 500; }
- .row-principal { color: #722ed1; font-weight: 500; }
- .row-flat { color: #36cbcb; font-weight: 500; }
- </style>
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            letter-spacing: -0.3px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #3b82f6;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .input-card {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 20px 16px;
+            margin-bottom: 28px;
+            border: 1px solid #e9eef2;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .input-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .label-block {
+            font-size: 15px;
+            font-weight: 500;
+            color: #334155;
+            min-width: 90px;
+        }
+
+        .input-wrapper {
+            flex: 2;
+            min-width: 160px;
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #d1d9e2;
+            padding: 0 14px;
+            height: 48px;
+            transition: border 0.2s;
+        }
+        .input-wrapper:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+
+        .currency-prefix {
+            font-size: 16px;
+            font-weight: 500;
+            color: #64748b;
+            margin-right: 6px;
+        }
+
+        .input-wrapper input {
+            border: none;
+            outline: none;
+            background: transparent;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 500;
+            color: #0f172a;
+            padding: 8px 0;
+        }
+
+        .input-wrapper input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .input-wrapper input[type="number"]::-webkit-outer-spin-button,
+        .input-wrapper input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-wrapper .suffix {
+            font-size: 15px;
+            color: #64748b;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+
+        .reset-btn {
+            background: white;
+            border: 1px solid #d4dce5;
+            border-radius: 40px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #475569;
+            width: 100%;
+            margin-top: 22px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .reset-btn:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 28px;
+            padding: 20px 18px;
+            color: white;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+
+        .result-item:last-of-type {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 15px;
+            font-weight: 400;
+            color: #b0c4de;
+            letter-spacing: 0.2px;
+        }
+
+        .result-value {
+            font-size: 22px;
+            font-weight: 600;
+            font-feature-settings: "tnum";
+        }
+
+        .result-value small {
+            font-size: 14px;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-left: 4px;
+        }
+
+        .note {
+            font-size: 12px;
+            color: #9aaebf;
+            margin-top: 16px;
+            text-align: center;
+            border-top: 1px dashed #2d3a4e;
+            padding-top: 14px;
+        }
+
+        .note span {
+            color: #facc15;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
- <h1>贷款计算器</h1>
+    <div class="calculator">
+        <!-- 输入区 对应 IMG_5299 -->
+        <div class="section-title">输入交易参数</div>
+        <div class="input-card">
+            <!-- 总金额 -->
+            <div class="input-row">
+                <span class="label-block">总金额</span>
+                <div class="input-wrapper">
+                    <span class="currency-prefix">¥</span>
+                    <input type="text" id="total" placeholder="0" inputmode="numeric">
+                </div>
+            </div>
+            <!-- 现价 -->
+            <div class="input-row">
+                <span class="label-block">现价</span>
+                <div class="input-wrapper">
+                    <span class="currency-prefix">¥</span>
+                    <input type="text" id="price" placeholder="0" inputmode="numeric">
+                </div>
+            </div>
+            <!-- 每手倍数，placeholder "例如10" -->
+            <div class="input-row">
+                <span class="label-block">每手倍数</span>
+                <div class="input-wrapper">
+                    <input type="text" id="multiplier" placeholder="例如10" inputmode="numeric">
+                    <span class="suffix">×</span>
+                </div>
+            </div>
+            <!-- 手数 -->
+            <div class="input-row">
+                <span class="label-block">手数</span>
+                <div class="input-wrapper">
+                    <input type="text" id="lots" placeholder="0" inputmode="numeric">
+                </div>
+            </div>
+            <!-- 保证金比例 15% 默认 -->
+            <div class="input-row">
+                <span class="label-block">保证金比例</span>
+                <div class="input-wrapper">
+                    <input type="text" id="marginRate" value="15" step="1" min="0" style="text-align: right;">
+                    <span class="suffix">%</span>
+                </div>
+            </div>
+            <!-- 重置按钮 -->
+            <button class="reset-btn" id="resetBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                重置
+            </button>
+        </div>
 
- <div class="input-group">
- <div class="input-row">
- <div class="input-item">
- <label>贷款金额（元）</label>
- <input type="text" id="loanAmount" placeholder="输入金额" onblur="formatInput(this)">
- </div>
- <div class="input-item">
- <label>贷款期数（月）</label>
- <input type="number" id="loanTerm" placeholder="期数" min="1">
- </div>
- <div class="input-item">
- <label>年利率（%）</label>
- <input type="number" id="annualRate" placeholder="年利率" step="0.0001">
- </div>
- </div>
- </div>
+        <!-- 计算结果区 对应 IMG_5300 -->
+        <div class="section-title">计算结果</div>
+        <div class="result-card">
+            <div class="result-item">
+                <span class="result-label">保证金</span>
+                <span class="result-value" id="marginResult">¥ —</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">剩余可用资金</span>
+                <span class="result-value" id="availableResult">¥ —</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">防守价格</span>
+                <span class="result-value" id="defendResult">¥ —</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">杠杆倍数</span>
+                <span class="result-value" id="leverageResult">— 倍</span>
+            </div>
+            <div class="note">
+                <span>⚡ 防守价基于做多头寸 & 维持保证金=初始保证金</span> 
+            </div>
+        </div>
+    </div>
 
- <div class="btn-group">
- <button class="calc-btn" onclick="calculateAll()">计算</button>
- <button class="reset-btn" onclick="resetAll()">重置</button>
- </div>
+    <script>
+        (function() {
+            // DOM 元素
+            const totalInput = document.getElementById('total');
+            const priceInput = document.getElementById('price');
+            const multiplierInput = document.getElementById('multiplier');
+            const lotsInput = document.getElementById('lots');
+            const marginRateInput = document.getElementById('marginRate');
 
- <div class="compare-section">
- <div class="compare-title">
- <h3>三种还款方式对比</h3>
- </div>
- <table id="resultTable">
- <thead>
- <tr>
- <th class="col-name">还款方式</th>
- <th>月供金额</th>
- <th>总还款额</th>
- <th>总利息</th>
- <th>利息占比</th>
- </tr>
- </thead>
- <tbody></tbody>
- </table>
- </div>
-</div>
+            const marginResult = document.getElementById('marginResult');
+            const availableResult = document.getElementById('availableResult');
+            const defendResult = document.getElementById('defendResult');
+            const leverageResult = document.getElementById('leverageResult');
 
-<script>
-// 金额格式化：整数元，无小数，带千分符
-function formatInput(input) {
- let val = input.value.replace(/,/g, '');
- if (val === '' || isNaN(val)) {
- input.value = '';
- return;
- }
- let num = Math.floor(parseFloat(val));
- input.value = num.toLocaleString('zh-CN');
-}
+            // ---------- 格式化工具 ----------
+            // 将数字格式化为带千位分隔符的整数 (无小数) —— 用于金额类结果
+            function formatIntegerWithCommas(value) {
+                if (value === null || value === undefined || isNaN(value)) return '—';
+                const intValue = Math.round(value);
+                return intValue.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                });
+            }
 
-// 获取纯数字
-function getPureNumber(id) {
- let val = document.getElementById(id).value.replace(/,/g, '').trim();
- return val ? Math.floor(parseFloat(val)) : 0;
-}
+            // 将杠杆倍数格式化为保留一位小数，并加上千位分隔符（整数部分可能较大）
+            function formatLeverage(value) {
+                if (value === null || value === undefined || isNaN(value)) return '— 倍';
+                // 保留一位小数，四舍五入
+                const withOneDecimal = value.toFixed(1);
+                // 将整数部分加上千位分隔符（toFixed 返回字符串如 "6.7"）
+                const parts = withOneDecimal.split('.');
+                const intPart = parseInt(parts[0], 10).toLocaleString(); // 千位分隔整数部分
+                return intPart + '.' + parts[1] + ' 倍';
+            }
 
-// 回车跳转 + 自动计算
-const amt = document.getElementById('loanAmount');
-const term = document.getElementById('loanTerm');
-const rate = document.getElementById('annualRate');
+            // 从格式化字符串中解析数字 (移除逗号)
+            function parseNumber(str) {
+                if (!str || str.trim() === '') return NaN;
+                const cleaned = str.replace(/,/g, '').trim();
+                const num = parseFloat(cleaned);
+                return isNaN(num) ? NaN : num;
+            }
 
-amt.addEventListener('keydown', e => {
- if (e.key === 'Enter') {
- e.preventDefault();
- formatInput(amt);
- term.focus();
- }
-});
+            // 更新输入框显示为带逗号的整数格式 (同时保留原始整数值在 data-raw 中)
+            function formatInputDisplay(input, value) {
+                if (isNaN(value)) {
+                    input.value = '';
+                    input.removeAttribute('data-raw');
+                } else {
+                    const intValue = Math.round(value);
+                    input.value = formatIntegerWithCommas(intValue);
+                    input.setAttribute('data-raw', intValue);
+                }
+            }
 
-term.addEventListener('keydown', e => {
- if (e.key === 'Enter') {
- e.preventDefault();
- rate.focus();
- }
-});
+            // 处理输入框焦点：移除逗号，显示原始数字便于编辑
+            function handleFocus(e) {
+                const input = e.target;
+                const raw = input.getAttribute('data-raw');
+                if (raw !== null && raw !== '') {
+                    input.value = raw;
+                } else {
+                    input.value = '';
+                }
+            }
 
-rate.addEventListener('keydown', e => {
- if (e.key === 'Enter') {
- e.preventDefault();
- calculateAll();
- }
-});
+            // 处理输入框失去焦点：解析，取整，格式化，更新计算
+            function handleBlur(e) {
+                const input = e.target;
+                let rawValue = parseNumber(input.value);
+                if (isNaN(rawValue) || rawValue < 0) rawValue = NaN;
+                formatInputDisplay(input, rawValue);
+                updateResults();
+            }
 
-// 重置功能
-function resetAll() {
- document.getElementById("loanAmount").value = "";
- document.getElementById("loanTerm").value = "";
- document.getElementById("annualRate").value = "";
- document.querySelector("#resultTable tbody").innerHTML = "";
-}
+            // 为所有文本输入框绑定 focus/blur/input 事件
+            const inputs = [totalInput, priceInput, multiplierInput, lotsInput, marginRateInput];
+            inputs.forEach(input => {
+                input.addEventListener('focus', handleFocus);
+                input.addEventListener('blur', handleBlur);
+                input.addEventListener('input', function() {
+                    updateResults();
+                });
+            });
 
-// 数字显示格式化（整数元）
-function fmt(num) {
- return Math.round(num).toLocaleString('zh-CN');
-}
+            // ---------- 核心计算 ----------
+            function updateResults() {
+                function getRaw(input) {
+                    return parseNumber(input.value);
+                }
 
-// 主计算
-function calculateAll() {
- let amount = getPureNumber('loanAmount');
- let term = parseInt(document.getElementById('loanTerm').value || 0);
- let rateYear = parseFloat(document.getElementById('annualRate').value || 0);
+                let total = getRaw(totalInput);
+                let price = getRaw(priceInput);
+                let multiplier = getRaw(multiplierInput);
+                let lots = getRaw(lotsInput);
+                let marginRate = getRaw(marginRateInput);
 
- if (amount <= 0) { alert('贷款金额输入有误，请查对！'); return; }
- if (term <= 0) { alert('期数输入有误！'); return; }
- if (rateYear <= 0) { alert('年利率输入有误！'); return; }
+                const isValid = !isNaN(total) && !isNaN(price) && !isNaN(multiplier) && !isNaN(lots) && !isNaN(marginRate) &&
+                                total > 0 && price > 0 && multiplier > 0 && lots > 0 && marginRate > 0;
 
- let monthRate = rateYear / 100 / 12;
+                if (!isValid) {
+                    marginResult.innerText = '¥ —';
+                    availableResult.innerText = '¥ —';
+                    defendResult.innerText = '¥ —';
+                    leverageResult.innerText = '— 倍';
+                    return;
+                }
 
- // 等额本息
- let payEqual = amount * monthRate * Math.pow(1 + monthRate, term) / (Math.pow(1 + monthRate, term) - 1);
- let totalEqual = payEqual * term;
- let interestEqual = totalEqual - amount;
- let ratioEqual = ((interestEqual / totalEqual) * 100).toFixed(2);
+                const contractValue = price * multiplier * lots;
+                const margin = contractValue * (marginRate / 100);
+                const available = total - margin;
+                const leverage = 100 / marginRate;   // 例如 15% -> 6.666...
 
- // 等额本金
- let monthBen = amount / term;
- let interestBen = 0;
- let rest = amount;
- for (let i = 0; i < term; i++) {
- interestBen += rest * monthRate;
- rest -= monthBen;
- }
- let totalBen = amount + interestBen;
- let firstBen = monthBen + amount * monthRate;
- let ratioBen = ((interestBen / totalBen) * 100).toFixed(2);
+                // 防守价格 (做多)
+                const denominator = multiplier * lots * (1 - marginRate / 100);
+                const numerator = contractValue - total;
+                let defend = NaN;
+                if (denominator > 0) {
+                    defend = numerator / denominator;
+                    if (defend < 0) defend = 0;
+                } else {
+                    defend = 0;
+                }
 
- // 信用平息
- let interestFlat = amount * monthRate * term;
- let totalFlat = amount + interestFlat;
- let payFlat = totalFlat / term;
- let ratioFlat = ((interestFlat / totalFlat) * 100).toFixed(2);
+                // 显示结果
+                marginResult.innerText = '¥ ' + formatIntegerWithCommas(margin);
+                availableResult.innerText = '¥ ' + formatIntegerWithCommas(available);
+                defendResult.innerText = '¥ ' + formatIntegerWithCommas(defend);
+                // 杠杆倍数使用保留一位小数的专用格式化
+                leverageResult.innerText = formatLeverage(leverage);
 
- // 渲染表格
- document.querySelector('#resultTable tbody').innerHTML = `
- <tr class="row-equal">
- <td class="col-name">等额本息</td>
- <td>${fmt(payEqual)}</td>
- <td>${fmt(totalEqual)}</td>
- <td>${fmt(interestEqual)}</td>
- <td>${ratioEqual}%</td>
- </tr>
- <tr class="row-principal">
- <td class="col-name">等额本金</td>
- <td>${fmt(firstBen)}</td>
- <td>${fmt(totalBen)}</td>
- <td>${fmt(interestBen)}</td>
- <td>${ratioBen}%</td>
- </tr>
- <tr class="row-flat">
- <td class="col-name">信用平息</td>
- <td>${fmt(payFlat)}</td>
- <td>${fmt(totalFlat)}</td>
- <td>${fmt(interestFlat)}</td>
- <td>${ratioFlat}%</td>
- </tr>`;
-}
-</script>
+                if (available < 0) {
+                    availableResult.style.opacity = '0.8';
+                } else {
+                    availableResult.style.opacity = '1';
+                }
+            }
+
+            // 重置
+            function resetInputs() {
+                totalInput.value = '';
+                priceInput.value = '';
+                multiplierInput.value = '';
+                lotsInput.value = '';
+                marginRateInput.value = '15';
+                inputs.forEach(input => input.removeAttribute('data-raw'));
+
+                marginResult.innerText = '¥ —';
+                availableResult.innerText = '¥ —';
+                defendResult.innerText = '¥ —';
+                leverageResult.innerText = '— 倍';
+                availableResult.style.opacity = '1';
+            }
+
+            document.getElementById('resetBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                resetInputs();
+            });
+
+            // 初始化保证金比例显示为整数格式
+            (function init() {
+                if (marginRateInput.value) {
+                    let val = parseNumber(marginRateInput.value);
+                    if (!isNaN(val)) {
+                        formatInputDisplay(marginRateInput, val);
+                    }
+                }
+            })();
+
+            // ---------- 回车跳转 (与上一版保持一致) ----------
+            const inputFields = [totalInput, priceInput, multiplierInput, lotsInput, marginRateInput];
+            inputFields.forEach((input, index) => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.blur();  // 触发格式化
+
+                        let nextIndex = index + 1;
+                        if (nextIndex >= inputFields.length) {
+                            nextIndex = 0;
+                        }
+                        const nextInput = inputFields[nextIndex];
+                        nextInput.focus();
+                        if (nextInput.value) {
+                            nextInput.select();
+                        }
+                    }
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
